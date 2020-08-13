@@ -1,0 +1,47 @@
+version: '3'
+services:
+  hadoop-spark:
+    image: danieltaipei731/docker-hadoop-spark:v2
+    hostname: master
+    container_name: master
+    restart: always
+    stdin_open : true
+    tty: true
+    command: > 
+      bash -c "/etc/init.d/ssh start 
+      && cd /home/hadoop-2.10.0/sbin/
+      && ./start-dfs.sh
+      && cd /home/spark-2.4.5-bin-hadoop2.7/sbin/
+      && ./start-all.sh
+      && tail -f /dev/null"
+    ports:
+      - "50070:50070"
+      - "8080:8080"
+      - "8889:8888"
+    volumes:
+      - ./code:/home/code/
+      - ./hdfs:/home/hdfs/
+
+  jupyter:
+    build:
+      context: ./dockerfile
+      dockerfile: dockerfile-jupyter
+    container_name: jupyter
+    hostname: jupyter
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+      - "8888:8888"
+    command: start-notebook.sh --NotebookApp.token=''
+    volumes:
+      - ./jupyter_data:/home/jovyan/work
+  
+  db:
+    image: mysql
+    container_name: mysql-db
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+    volumes:
+      - ./mysql_data:/var/lib/mysql 
