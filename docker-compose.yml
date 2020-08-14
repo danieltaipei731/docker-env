@@ -18,7 +18,7 @@ services:
       - "50070:50070"
       - "8080:8080"
     volumes:
-      - ./code:/home/code/
+      - ./hs_code:/home/code/
       - ./hdfs/namenode:/home/hdfs/namenode
       - ./hdfs/datanode:/home/hdfs/datanode
 
@@ -26,22 +26,35 @@ services:
     build:
       context: ./dockerfile
       dockerfile: dockerfile-jupyter
-    container_name: jupyter
-    hostname: jupyter
-    restart: unless-stopped
+    container_name: chatbot_jupyter
+    tty: true
+    stdin_open: true
+    depends_on:
+      - db 
     ports:
       - "5000:5000"
       - "8888:8888"
     command: start-notebook.sh --NotebookApp.token=''
     volumes:
-      - ./jupyter_data:/home/jovyan/work
+      - ./code:/home/jovyan/work
   
   db:
     image: mysql
-    container_name: mysql-db
+    container_name: chatbot_db
     ports:
       - "3306:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=123456
     volumes:
-      - ./mysql_data:/var/lib/mysql 
+      - ./mysql_data:/var/lib/mysql
+
+  ngrok:
+    image: wernight/ngrok
+    container_name: chatbot_ngrok
+    tty: true
+    stdin_open: true
+    ports:
+      - "4040"
+    depends_on:
+      - jupyter
+    command: ngrok http chatbot_jupyter:5000 

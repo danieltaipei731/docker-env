@@ -1,2 +1,2 @@
 FROM jupyter/scipy-notebook
-RUN pip install boto3 line-bot-sdk requests hdfs pymysql emoji
+RUN pip install Flask==1.0.2  boto3 line-bot-sdk requests hdfs pymysql emoji
